@@ -70,3 +70,46 @@ class Solution {
     }
 }
 ```
+
+## Approach 2
+
+A more concise solution, first reverse the whole string, then reverse the HTML entity
+
+```java
+//"1234&euro;567" => "765;orue&4321" => "765&euro;4321"
+class Solution {
+    public String reverseString(String s) {
+        List<String> words = new ArrayList<>();
+        //reverse the whole string
+        s = reverse(s, 0, s.length() - 1);
+            
+        int i = 0;
+        int j;
+        while (i < s.length()) {
+            //whenever we encounter ";a&" , reverse it
+            if (s.charAt(i) == ';') {
+                j = i + 1;
+                while (s.charAt(j) != '&')
+                    j++;
+                s = reverse(s, i, j);
+                i = j + 1;
+            }
+            else
+                i++;
+        }
+        return s;
+    }
+    
+    //reverse the string between i and j
+    public String reverse(String s, int i, int j) {
+        StringBuilder sb = new StringBuilder();
+        for (int k = 0; k < s.length(); k++) {
+            if (k >= i && k <= j)
+                sb.append(s.charAt(i + j - k));
+            else
+                sb.append(s.charAt(k));
+        }
+        return sb.toString();
+    }
+}
+```

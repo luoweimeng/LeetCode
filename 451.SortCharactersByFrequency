@@ -1,0 +1,123 @@
+## Problem setting
+
+Given a string, sort it in decreasing order based on the frequency of characters.
+
+Example 1:
+
+```
+Input:
+"tree"
+
+Output:
+"eert"
+```
+
+Explanation:
+'e' appears twice while 'r' and 't' both appear once.
+So 'e' must appear before both 'r' and 't'. Therefore "eetr" is also a valid answer.
+Example 2:
+
+```
+Input:
+"cccaaa"
+
+Output:
+"cccaaa"
+```
+
+Explanation:
+Both 'c' and 'a' appear three times, so "aaaccc" is also a valid answer.
+Note that "cacaca" is incorrect, as the same characters must be together.
+Example 3:
+
+```
+Input:
+"Aabb"
+
+Output:
+"bbAa"
+```
+
+Explanation:
+"bbaA" is also a valid answer, but "Aabb" is incorrect.
+Note that 'A' and 'a' are treated as two different characters.
+
+
+## Approach 1
+
+HashMap + PriorityQueue
+
+Use HashMap to caculate the frequency, then store the character in pq, then pop them one by one. The time complexity is O(nlogn)
+
+```java
+class Solution {
+    public String frequencySort(String s) {
+        Map<Character, Integer> map = new HashMap<>();
+        //maximum heap
+        PriorityQueue<Map.Entry<Character, Integer>> pq = new PriorityQueue<>((a, b)->b.getValue() - a.getValue());
+        StringBuilder sb = new StringBuilder();
+        char[] ca = s.toCharArray();
+        
+        for (int i = 0; i < ca.length; i++)
+            map.put(ca[i], map.getOrDefault(ca[i], 0) + 1);
+        
+        for (Map.Entry<Character, Integer> entry : map.entrySet()) {
+            pq.offer(entry);
+        }
+        
+        //reconstruct the string
+        while (!pq.isEmpty()) {
+            Map.Entry<Character, Integer> entry = pq.poll();
+            char c = entry.getKey();
+            for (int i = 0; i < entry.getValue(); i++)
+                sb.append(c);
+        }
+        
+        return sb.toString();
+    }
+}
+```
+
+## Approach 2
+
+HashMap + BucketSort
+
+Consider the frequency of the character only lies in [0, n], just use bucket sort.
+
+用array做bucket，每个格子里面又是list，每次碰到该frequency的元素就加到frequcency对应的list里
+
+```java
+class Solution {
+    public String frequencySort(String s) {
+        Map<Character, Integer> map = new HashMap<>();
+        List<Map.Entry<Character, Integer>>[] array = new ArrayList[s.length()+1];
+    
+        StringBuilder sb = new StringBuilder();
+        char[] ca = s.toCharArray();
+        
+        for (int i = 0; i < ca.length; i++)
+            map.put(ca[i], map.getOrDefault(ca[i], 0) + 1);
+        
+        //freq: List<entry>
+        for (Map.Entry<Character, Integer> entry : map.entrySet()) {
+            if (array[entry.getValue()] == null)
+                array[entry.getValue()] = new ArrayList<>();
+            array[entry.getValue()].add(entry);
+        }
+        
+        //reconstruct the string
+        for (int i = array.length - 1; i >= 0; i--) {
+            if (array[i] != null) {
+                for (int j = 0; j < array[i].size(); j++) {
+                    Map.Entry<Character, Integer> entry = array[i].get(j);
+                    char c = entry.getKey();
+                    for (int k = 0; k < entry.getValue(); k++)
+                        sb.append(c);
+                }
+            }
+        }
+        
+        return sb.toString();
+    }
+}
+```
