@@ -1,0 +1,114 @@
+## Problem setting
+
+Given two words (beginWord and endWord), and a dictionary's word list, find all shortest transformation sequence(s) from beginWord to endWord, such that:
+
+Only one letter can be changed at a time
+Each transformed word must exist in the word list. Note that beginWord is not a transformed word.
+For example,
+
+Given:
+beginWord = "hit"
+endWord = "cog"
+wordList = ["hot","dot","dog","lot","log","cog"]
+Return
+```
+  [
+    ["hit","hot","dot","dog","cog"],
+    ["hit","hot","lot","log","cog"]
+  ]
+```
+
+
+## Solution
+bfs->树->dfs
+
+基本思路：先用类似Word Ladder 1的方法找到最短路径，需要注意的是找到一个解后需要在当前层继续bfs。在bfs的过程中使用hashmap保存当前结点的parent，以便后续查找。之后再用dfs从endWord向上查找beginWord，得到所有路径
+
+```java
+class Solution {
+    public List<List<String>> findLadders(String beginWord, String endWord, List<String> wordList) {
+        List<List<String>> res = new ArrayList<>();
+        Map<String, List<String>> parents = new HashMap<>();
+        parents = bfs(beginWord, endWord, wordList);
+        List<String> temp = new ArrayList<>();
+        temp.add(endWord);
+        dfs(res, temp, parents, endWord, beginWord);
+        return res;
+    }
+
+    /* BFS 不同层不能访问同一个单词；但同一层能访问同一个单词﻿
+
+    hit
+    hot
+    dot lot
+    dog log
+    cog cog
+     */
+    public Map<String, List<String>> bfs (String beginWord, String endWord, List<String> wordList) {
+        boolean found = false;
+        //保存当前word的parent，方便向上遍历
+        Map<String, List<String>> parents = new HashMap<>();
+        Set<String> wordSet = new HashSet<>(wordList);
+        if (!wordSet.contains(endWord))
+            return parents;
+
+        Set<String> levelWord = new HashSet<>();
+        levelWord.add(beginWord);
+
+        while (!levelWord.isEmpty()) {
+            Set<String> toVisit = new HashSet<>();
+            for (String word : levelWord) {
+                //下一层
+                StringBuilder sb = new StringBuilder(word);
+                for (int i = 0; i < sb.length(); i++) {
+                    char orig_c = sb.charAt(i);
+                    for (char c = 'a'; c <= 'z'; c++) {
+                        if (c == orig_c)
+                            continue;
+                        sb.setCharAt(i, c);
+                        //new word
+                        String newWord = sb.toString();
+                        if (wordSet.contains(newWord)) {
+                            //设置当前word的parent
+                            if (parents.get(newWord) == null)
+                                parents.put(newWord, new ArrayList<>());
+                            parents.get(newWord).add(word);
+
+                            toVisit.add(newWord);
+                        }
+                        if (newWord.equals(endWord))
+                            found = true;
+                    }
+                    //别忘了把它复原！！
+                    sb.setCharAt(i, orig_c);
+                }
+            }
+            //在这一层找到了，就不再搜索下一层了
+            if (found)
+                break;
+            levelWord = toVisit;
+            //从待搜索的单词中删除这层的单词
+            for (String visited : toVisit) {
+                wordSet.remove(visited);
+            }
+        }
+
+        return parents;
+    }
+
+    //从endWord通过parent向上遍历，
+    public void dfs(List<List<String>> res, List<String> temp, Map<String, List<String>> parents, String word, String beginWord) {
+        if (word.equals(beginWord)) {
+            res.add(new ArrayList<>(temp));
+            return;
+        }
+        if (parents.get(word) != null) {
+            for (String s : parents.get(word)) {
+                temp.add(0, s);
+                dfs(res, temp, parents, s, beginWord);
+                temp.remove(0);
+            }
+        }
+    }
+}
+```
